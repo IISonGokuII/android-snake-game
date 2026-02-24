@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import com.iisongokuii.djoudinisnake.game.GameMode
 import com.iisongokuii.djoudinisnake.game.GameScreen
 import com.iisongokuii.djoudinisnake.ui.screens.MainMenuScreen
