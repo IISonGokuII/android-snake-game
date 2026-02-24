@@ -175,23 +175,52 @@ fun GameBoard(gameState: GameState) {
         val cellWidth = size.width / gameState.gridWidth
         val cellHeight = size.height / gameState.gridHeight
 
-        // Wände / Obstacles
+        // Subtiles Neon Grid im Hintergrund
+        for (i in 0..gameState.gridWidth) {
+            drawLine(
+                color = Color.White.copy(alpha = 0.05f),
+                start = Offset(i * cellWidth, 0f),
+                end = Offset(i * cellWidth, size.height),
+                strokeWidth = 1f
+            )
+        }
+        for (i in 0..gameState.gridHeight) {
+            drawLine(
+                color = Color.White.copy(alpha = 0.05f),
+                start = Offset(0f, i * cellHeight),
+                end = Offset(size.width, i * cellHeight),
+                strokeWidth = 1f
+            )
+        }
+
+        // Wände / Obstacles (Neon Style)
         gameState.obstacles.forEach { pos ->
             drawRoundRect(
                 color = Color.DarkGray,
-                topLeft = Offset(pos.x * cellWidth, pos.y * cellHeight),
-                size = Size(cellWidth, cellHeight),
+                topLeft = Offset(pos.x * cellWidth + 2f, pos.y * cellHeight + 2f),
+                size = Size(cellWidth - 4f, cellHeight - 4f),
+                cornerRadius = CornerRadius(8f, 8f),
+                style = Stroke(width = 4f)
+            )
+            drawRoundRect(
+                color = Color.Black.copy(alpha = 0.5f),
+                topLeft = Offset(pos.x * cellWidth + 6f, pos.y * cellHeight + 6f),
+                size = Size(cellWidth - 12f, cellHeight - 12f),
                 cornerRadius = CornerRadius(4f, 4f)
             )
         }
 
-        // Futter
+        // Futter (Glühende Seele)
         val padding = cellWidth * 0.2f
-        drawRoundRect(
+        drawCircle(
+            color = NeonGreen.copy(alpha = 0.3f), // Glow
+            radius = (cellWidth * 0.6f) * pulseScale,
+            center = Offset(gameState.food.x * cellWidth + cellWidth / 2, gameState.food.y * cellHeight + cellHeight / 2)
+        )
+        drawCircle(
             color = NeonGreen,
-            topLeft = Offset(gameState.food.x * cellWidth + padding, gameState.food.y * cellHeight + padding),
-            size = Size((cellWidth - padding * 2) * pulseScale, (cellHeight - padding * 2) * pulseScale),
-            cornerRadius = CornerRadius(50f, 50f)
+            radius = (cellWidth * 0.35f) * pulseScale,
+            center = Offset(gameState.food.x * cellWidth + cellWidth / 2, gameState.food.y * cellHeight + cellHeight / 2)
         )
         
         // Trick Item
@@ -200,25 +229,62 @@ fun GameBoard(gameState: GameState) {
                 color = trick.type.color,
                 topLeft = Offset(trick.position.x * cellWidth + padding, trick.position.y * cellHeight + padding),
                 size = Size(cellWidth - padding * 2, cellHeight - padding * 2),
-                style = Stroke(width = 4f)
+                style = Stroke(width = 6f),
+                cornerRadius = CornerRadius(8f, 8f)
             )
         }
 
-        // Schlange
+        // Moderne durchgehende Neon-Schlange
         val isGhost = gameState.activeTrick?.type == TrickType.GHOST
-        val snakeColor = if (isGhost) TrickType.GHOST.color else gameState.mode.color
-        val opacity = if (isGhost) 0.5f else 1.0f
+        val baseColor = if (isGhost) TrickType.GHOST.color else gameState.mode.color
+        val snakeColor = baseColor.copy(alpha = if (isGhost) 0.4f else 1.0f)
         
-        gameState.snake.forEachIndexed { index, position ->
-            val isHead = index == 0
-            val p = if (isHead) cellWidth * 0.1f else cellWidth * 0.15f
+        if (gameState.snake.isNotEmpty()) {
+            val path = androidx.compose.ui.graphics.Path()
+            val first = gameState.snake.first()
+            path.moveTo(first.x * cellWidth + cellWidth / 2, first.y * cellHeight + cellHeight / 2)
             
-            drawRoundRect(
-                color = if (isHead) Color.White.copy(alpha = opacity) else snakeColor.copy(alpha = opacity),
-                topLeft = Offset(position.x * cellWidth + p, position.y * cellHeight + p),
-                size = Size(cellWidth - p * 2, cellHeight - p * 2),
-                cornerRadius = CornerRadius(12f, 12f)
+            for (i in 1 until gameState.snake.size) {
+                val pos = gameState.snake[i]
+                path.lineTo(pos.x * cellWidth + cellWidth / 2, pos.y * cellHeight + cellHeight / 2)
+            }
+            
+            // Äußerer Glow
+            drawPath(
+                path = path,
+                color = snakeColor.copy(alpha = 0.3f),
+                style = Stroke(width = cellWidth * 0.9f, cap = androidx.compose.ui.graphics.StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round)
             )
+            // Innerer Kern
+            drawPath(
+                path = path,
+                color = snakeColor,
+                style = Stroke(width = cellWidth * 0.6f, cap = androidx.compose.ui.graphics.StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round)
+            )
+
+            // Schlangenkopf (Heller und mit "Augen")
+            val head = gameState.snake.first()
+            val headX = head.x * cellWidth + cellWidth / 2
+            val headY = head.y * cellHeight + cellHeight / 2
+            
+            drawCircle(color = Color.White.copy(alpha = if (isGhost) 0.6f else 1.0f), radius = cellWidth * 0.35f, center = Offset(headX, headY))
+            
+            // Augen-Ausrichtung basierend auf Richtung
+            val eyeOffset1 = when (gameState.currentDirection) {
+                Direction.UP -> Offset(-cellWidth * 0.15f, -cellHeight * 0.15f)
+                Direction.DOWN -> Offset(cellWidth * 0.15f, cellHeight * 0.15f)
+                Direction.LEFT -> Offset(-cellWidth * 0.15f, -cellHeight * 0.15f)
+                Direction.RIGHT -> Offset(cellWidth * 0.15f, -cellHeight * 0.15f)
+            }
+            val eyeOffset2 = when (gameState.currentDirection) {
+                Direction.UP -> Offset(cellWidth * 0.15f, -cellHeight * 0.15f)
+                Direction.DOWN -> Offset(-cellWidth * 0.15f, cellHeight * 0.15f)
+                Direction.LEFT -> Offset(-cellWidth * 0.15f, cellHeight * 0.15f)
+                Direction.RIGHT -> Offset(cellWidth * 0.15f, cellHeight * 0.15f)
+            }
+            
+            drawCircle(color = DeepSpace, radius = cellWidth * 0.1f, center = Offset(headX + eyeOffset1.x, headY + eyeOffset1.y))
+            drawCircle(color = DeepSpace, radius = cellWidth * 0.1f, center = Offset(headX + eyeOffset2.x, headY + eyeOffset2.y))
         }
     }
 }
