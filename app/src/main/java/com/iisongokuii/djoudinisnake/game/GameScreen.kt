@@ -167,7 +167,8 @@ fun GameBoard(gameState: GameState) {
         animationSpec = infiniteRepeatable(
             animation = tween(500, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse
-        )
+        ),
+        label = "PulseAnimation"
     )
 
     Canvas(modifier = Modifier.fillMaxSize()) {
