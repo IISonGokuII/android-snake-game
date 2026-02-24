@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.sp
 import com.iisongokuii.djoudinisnake.ui.theme.DjoudinisSnakeTheme
 import com.iisongokuii.djoudinisnake.ui.theme.DeepSpace
 import com.iisongokuii.djoudinisnake.ui.theme.NeonPurple
+import com.iisongokuii.djoudinisnake.game.GameScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,17 +32,5 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainScreen() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(DeepSpace),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "Djoudini's Challenge",
-            color = NeonPurple,
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Bold
-        )
-    }
+    GameScreen()
 }
