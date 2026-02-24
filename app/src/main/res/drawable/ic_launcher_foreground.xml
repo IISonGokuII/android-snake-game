@@ -1,0 +1,37 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Äußerer Glow der Schlange (Neon Blue transparent) -->
+    <path
+        android:pathData="M78,32 L40,32 C25,32 25,54 40,54 L68,54 C83,54 83,76 68,76 L30,76"
+        android:strokeWidth="14"
+        android:strokeColor="#4D00E5FF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"/>
+        
+    <!-- Innerer Kern der Schlange (Neon Blue leuchtend) -->
+    <path
+        android:pathData="M78,32 L40,32 C25,32 25,54 40,54 L68,54 C83,54 83,76 68,76 L30,76"
+        android:strokeWidth="6"
+        android:strokeColor="#00E5FF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"/>
+
+    <!-- Das Auge der Schlange (Djoudini Neon Purple) -->
+    <path
+        android:pathData="M74,32 m-2.5,0 a2.5,2.5 0 1,1 5,0 a2.5,2.5 0 1,1 -5,0"
+        android:fillColor="#AA00FF"/>
+
+    <!-- Das magische Ziel (Neon Green Apfel) -->
+    <path
+        android:pathData="M26,32 m-4,0 a4,4 0 1,1 8,0 a4,4 0 1,1 -8,0"
+        android:fillColor="#00E676"/>
+        
+    <!-- Ein kleiner Stern/Glanz-Effekt unten -->
+    <path
+        android:pathData="M54,88 L52,94 L46,96 L52,98 L54,104 L56,98 L62,96 L56,94 Z"
+        android:fillColor="#FFFFD700"/>
+</vector>
