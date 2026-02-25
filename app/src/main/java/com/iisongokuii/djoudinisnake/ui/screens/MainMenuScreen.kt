@@ -20,12 +20,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iisongokuii.djoudinisnake.ui.theme.DeepSpace
 import com.iisongokuii.djoudinisnake.ui.theme.NeonBlue
+import com.iisongokuii.djoudinisnake.ui.theme.NeonGreen
 import com.iisongokuii.djoudinisnake.ui.theme.NeonPurple
 import kotlin.math.sin
 import kotlin.random.Random
 
 @Composable
-fun MainMenuScreen(onPlayClick: () -> Unit) {
+fun MainMenuScreen(onPlayClick: () -> Unit, onLeaderboardClick: () -> Unit, onSettingsClick: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize().background(DeepSpace)) {
         // Animierter Partikel-Hintergrund
         AnimatedBackground()
@@ -33,6 +34,7 @@ fun MainMenuScreen(onPlayClick: () -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .systemBarsPadding()
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
@@ -68,9 +70,9 @@ fun MainMenuScreen(onPlayClick: () -> Unit) {
 
             GlassButton("ENTRANCE (PLAY)", NeonPurple, onPlayClick)
             Spacer(modifier = Modifier.height(20.dp))
-            GlassButton("SECRETS (SOON)", Color.Gray, {})
+            GlassButton("SECRETS (TROPHIES)", NeonBlue, onLeaderboardClick)
             Spacer(modifier = Modifier.height(20.dp))
-            GlassButton("ILLUSIONS (SETTINGS)", Color.Gray, {})
+            GlassButton("ILLUSIONS (SETTINGS)", NeonGreen, onSettingsClick)
         }
     }
 }

@@ -41,20 +41,22 @@ fun GameScreen(mode: GameMode, onBack: () -> Unit) {
 
     // Haptisches Feedback Helper
     val triggerVibration = { duration: Long, intensity: Int ->
-        val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-            vibratorManager.defaultVibrator
-        } else {
-            @Suppress("DEPRECATION")
-            context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-        }
-        
-        if (vibrator.hasVibrator()) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                vibrator.vibrate(VibrationEffect.createOneShot(duration, intensity))
+        if (prefs.isHapticsEnabled()) {
+            val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+                vibratorManager.defaultVibrator
             } else {
                 @Suppress("DEPRECATION")
-                vibrator.vibrate(duration)
+                context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            }
+            
+            if (vibrator.hasVibrator()) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION.CODES.O) {
+                    vibrator.vibrate(VibrationEffect.createOneShot(duration, intensity))
+                } else {
+                    @Suppress("DEPRECATION")
+                    vibrator.vibrate(duration)
+                }
             }
         }
     }
@@ -65,7 +67,8 @@ fun GameScreen(mode: GameMode, onBack: () -> Unit) {
             onTrickPickedUp = { triggerVibration(50L, 255) },
             onGameOver = {
                 triggerVibration(400L, VibrationEffect.DEFAULT_AMPLITUDE)
-                prefs.saveHighScore(mode.name, gameState.score)
+                // Die Speicherung des Scores passiert jetzt beim Neustart/Zurückgehen im Overlay,
+                // damit der Spieler seinen Namen eingeben kann.
             }
         )
     }
@@ -74,6 +77,7 @@ fun GameScreen(mode: GameMode, onBack: () -> Unit) {
         modifier = Modifier
             .fillMaxSize()
             .background(DeepSpace)
+            .systemBarsPadding()
             .pointerInput(Unit) {
                 detectDragGestures { change, dragAmount ->
                     change.consume()
@@ -135,19 +139,22 @@ fun GameScreen(mode: GameMode, onBack: () -> Unit) {
                 GameOverOverlay(
                     score = gameState.score, 
                     highscore = prefs.getHighScore(mode.name),
-                    onRestart = {
+                    onRestart = { playerName ->
                         coroutineScope.launch {
+                            prefs.saveHighScore(mode.name, gameState.score, playerName)
                             gameState.startGameLoop(
                                 onFoodEaten = { triggerVibration(15L, 80) },
                                 onTrickPickedUp = { triggerVibration(50L, 255) },
                                 onGameOver = {
                                     triggerVibration(400L, VibrationEffect.DEFAULT_AMPLITUDE)
-                                    prefs.saveHighScore(mode.name, gameState.score)
                                 }
                             )
                         }
                     },
-                    onBack = onBack
+                    onBack = { playerName -> 
+                        prefs.saveHighScore(mode.name, gameState.score, playerName)
+                        onBack()
+                    }
                 )
             } else {
                 GameBoard(gameState = gameState)
@@ -289,8 +296,12 @@ fun GameBoard(gameState: GameState) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GameOverOverlay(score: Int, highscore: Int, onRestart: () -> Unit, onBack: () -> Unit) {
+fun GameOverOverlay(score: Int, highscore: Int, onRestart: (String) -> Unit, onBack: (String) -> Unit) {
+    var playerName by remember { mutableStateOf("") }
+    val isNewHighscore = score >= highscore && score > 0
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -301,14 +312,25 @@ fun GameOverOverlay(score: Int, highscore: Int, onRestart: () -> Unit, onBack: (
             Text("ILLUSION SHATTERED", color = BloodRed, fontSize = 28.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(16.dp))
             Text("Score: $score", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-            if (score >= highscore && score > 0) {
-                 Text("NEW HIGHSCORE!", color = NeonGreen, fontSize = 18.sp, fontWeight = FontWeight.Black)
+            
+            if (isNewHighscore) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("NEW HIGHSCORE!", color = NeonGreen, fontSize = 18.sp, fontWeight = FontWeight.Black)
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = playerName,
+                    onValueChange = { playerName = it },
+                    label = { Text("Enter your name", color = Color.Gray) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(0.8f)
+                )
             } else {
-                 Text("Highscore: $highscore", color = Color.Gray, fontSize = 16.sp)
+                Text("Highscore: $highscore", color = Color.Gray, fontSize = 16.sp)
             }
+            
             Spacer(modifier = Modifier.height(32.dp))
             Button(
-                onClick = onRestart,
+                onClick = { onRestart(playerName) },
                 colors = ButtonDefaults.buttonColors(containerColor = NeonPurple),
                 modifier = Modifier.fillMaxWidth(0.6f).height(50.dp)
             ) {
@@ -316,7 +338,7 @@ fun GameOverOverlay(score: Int, highscore: Int, onRestart: () -> Unit, onBack: (
             }
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedButton(
-                onClick = onBack,
+                onClick = { onBack(playerName) },
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
                 modifier = Modifier.fillMaxWidth(0.6f).height(50.dp)
             ) {

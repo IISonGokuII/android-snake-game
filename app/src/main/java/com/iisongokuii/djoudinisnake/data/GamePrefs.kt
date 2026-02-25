@@ -10,10 +10,25 @@ class GamePrefs(context: Context) {
         return prefs.getInt("highscore_$mode", 0)
     }
 
-    fun saveHighScore(mode: String, score: Int) {
+    fun getHighScoreName(mode: String): String {
+        return prefs.getString("highscore_name_$mode", "Unknown Illusionist") ?: "Unknown Illusionist"
+    }
+
+    fun saveHighScore(mode: String, score: Int, name: String) {
         val current = getHighScore(mode)
-        if (score > current) {
-            prefs.edit().putInt("highscore_$mode", score).apply()
+        if (score >= current) { // Allow overriding if score is same but maybe different name, or better >=
+            prefs.edit()
+                .putInt("highscore_$mode", score)
+                .putString("highscore_name_$mode", name.ifBlank { "Djoudini" })
+                .apply()
         }
+    }
+
+    fun isHapticsEnabled(): Boolean {
+        return prefs.getBoolean("haptics_enabled", true)
+    }
+
+    fun setHapticsEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean("haptics_enabled", enabled).apply()
     }
 }

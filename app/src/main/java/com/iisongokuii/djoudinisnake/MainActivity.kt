@@ -10,11 +10,15 @@ import com.iisongokuii.djoudinisnake.game.GameMode
 import com.iisongokuii.djoudinisnake.game.GameScreen
 import com.iisongokuii.djoudinisnake.ui.screens.MainMenuScreen
 import com.iisongokuii.djoudinisnake.ui.screens.ModeSelectionScreen
+import com.iisongokuii.djoudinisnake.ui.screens.LeaderboardScreen
+import com.iisongokuii.djoudinisnake.ui.screens.SettingsScreen
 import com.iisongokuii.djoudinisnake.ui.theme.DjoudinisSnakeTheme
 
 sealed class Screen {
     object Menu : Screen()
     object ModeSelection : Screen()
+    object Leaderboard : Screen()
+    object Settings : Screen()
     data class Game(val mode: GameMode) : Screen()
 }
 
@@ -37,10 +41,18 @@ fun DjoudiniApp() {
 
     when (val screen = currentScreen) {
         is Screen.Menu -> MainMenuScreen(
-            onPlayClick = { currentScreen = Screen.ModeSelection }
+            onPlayClick = { currentScreen = Screen.ModeSelection },
+            onLeaderboardClick = { currentScreen = Screen.Leaderboard },
+            onSettingsClick = { currentScreen = Screen.Settings }
         )
         is Screen.ModeSelection -> ModeSelectionScreen(
             onModeSelected = { selectedMode -> currentScreen = Screen.Game(selectedMode) },
+            onBack = { currentScreen = Screen.Menu }
+        )
+        is Screen.Leaderboard -> LeaderboardScreen(
+            onBack = { currentScreen = Screen.Menu }
+        )
+        is Screen.Settings -> SettingsScreen(
             onBack = { currentScreen = Screen.Menu }
         )
         is Screen.Game -> GameScreen(

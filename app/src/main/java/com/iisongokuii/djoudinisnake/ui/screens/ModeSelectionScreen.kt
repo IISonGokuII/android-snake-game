@@ -23,6 +23,7 @@ fun ModeSelectionScreen(onModeSelected: (GameMode) -> Unit, onBack: () -> Unit) 
         modifier = Modifier
             .fillMaxSize()
             .background(DeepSpace)
+            .systemBarsPadding()
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
